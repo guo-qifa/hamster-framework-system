@@ -1,0 +1,153 @@
+导入 导出
+importHeaders// Token 增加属性
+/**
+ @import="importData" importButton importUploadUrl="http://xxxxx" :importHeaders="Token"
+     * BubbleBasicManage组件增加 @export="exportData" exportButton
+     * 导出使用
+     * 添加exportButton属性
+     * 添加export事件
+     */
+    exportData() {
+      //点击导出按钮后调用
+      //自己调用接口
+      alert(111);
+    },
+    /**
+     * 导入使用
+     * 添加importButton属性
+     * 添加importUploadUrl属性（文件上传地址）
+     * 添加import事件
+     */
+    importData(url) {
+      //上传导入文件后调用
+      //获得文件URL调用导入接口
+      console.log(url);
+    },
+**/
+
+
+
+
+import pop from '@/mixin/pop'
+
+隐患排查 完结
+隐患清单 撒花
+
+表格列 权限控制：
+    列配置中加入visible属性，boolean类型或function类型（function类型时必须返回true/false）
+    例：{
+            text: "所属网格",
+            key: "gridName",
+            visible: () => {
+                return userType == 2
+            }
+        }
+
+表格中 列为字典请求查询：
+    列配置中加入remote属性
+    例：{
+            text: "危害因素等级",
+            key: "type",
+            remote: {
+                url: "remoteDict.url",
+                parame: { dictCode: "wxyfl" },
+                text: "subDictName",
+                value: "subDictValue",
+            }
+        }
+
+表格中 单独控制行的编辑删除按钮显隐
+    1、首先BubbleBasicManage组件没有noedit或nodelete
+    2、BubbleBasicManage组件使用injectionSubmit函数手动加载表格数据
+    3、表格行中加入noedit或nodelete属性（Boolean类型）
+
+BubbleBasicManage组件绑定selectChange事件 参数为选中数据行
+
+表单中 根据某个表单值控制其他表单项显隐
+    表单项配置中加入formObjVisible属性 参数为整个表单当前的data
+    例：{
+          type: "radio",
+          text: "备案情况",
+          name: "filing",
+          option: [{text: '未备案', value: '未备案'}, {text: '已备案', value: '已备案'}],
+          valid: { required: true },
+        },
+        {
+          type: "input",
+          text: "备案单位",
+          name: "filingUnit",
+          valid: { required: true },
+          formObjVisible: (d) => {return d.filing == '已备案'}
+        },
+
+表单中 tableSelect类型表单项，选中后回调
+    例：{
+            type: "tableSelect",
+            text: "部门",
+            name: "joinDept",
+            tableSelectConfig: "workPlace",
+            valid: { required: true },
+            defaultSelected: v => {
+                return { text: this.workListData[v.joinDept] ? this.workListData[v.joinDept] : v.joinDept, value: v.joinDept };
+            },
+            objectChoiceInputChange: (d, { fullData: f }) => {
+                if(d.joinDept) {
+                    d.person = f.chargeName;
+                    d.phone = f.phone;
+                }
+            }
+        },
+
+自定义导入功能：
+    BubbleBasicManage组件属性绑定customImportButton（boolean类型）以及事件绑定customImport
+目前使用的自定义导入使用方式：
+    /**
+    import importTemplate from '@/components/importTemplate/importTemplate';//导入模板组件
+    import { importTemplateInfo } from '@/utils';//统一定义的传入的模板组件props
+    */
+      customImportData() {
+        new this.$newPopup(
+          importTemplate,
+          {
+            props: importTemplateInfo().BaseInfoList,
+          },
+          () => {}
+        );
+      },
+
+    /**
+    importTemplateInfo().BaseInfoList={
+            importUrl: 'risksafety/enterprise/import',//导入地址
+            templateName: 'company',//服务器中保存的模板文件的名字
+            templateText: '企业导入模板',//下载的模板名字（当前项目与模板同源时才生效！）
+        }
+    */
+
+导出功能使用
+    import { publicExportFn } from '@/utils';
+    exportData() { 
+        if(!this.selectData || this.selectData.length == 0) {
+            this.$message.warning('请勾选导出企业!');
+            return
+        }
+        /**
+        参数1：固定传入this.$bubble.requestExport   导入请求函数
+        参数2：符合this.$bubble.request配置的请求地址
+        参数3：导出数据的ID数组
+        */
+        publicExportFn(this.$bubble.requestExport, "exportInterface.BaseInfoList", this.selectData.map(d => d.id), "企业列表")
+    },
+
+
+功能按钮权限控制：
+    1、从this.$bubble.pageLoadArguments中取出auth数组
+    2、调用utils中initRightControl函数，参数传入auth数组
+    3、返回 {allowAdd, allowEdit, allowDelete, allowImport, allowExport}(属性均为数组类型)
+
+表格复选框：
+    1、:dataKey="'id'" :selectMode="'multiple'" @selectChange="tableSelectChange";
+    2、tableSelectChange函数的参数为选中的数据行数组
+
+
+
+
